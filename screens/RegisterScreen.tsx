@@ -22,31 +22,46 @@ const RegisterScreen = () => {
 
   const navigation = useNavigation();
 
-  // ✅ Automatically pick API URL based on platform/environment
+  // ✅ Automatically switch API URL
   const API_BASE_URL =
     Platform.OS === "android" || Platform.OS === "ios"
-      ? "https://chatter-70mf1zyq1-hayatudeens-projects.vercel.app" // for Expo Go or real devices
-      : "http://localhost:8000"; // for local development in web or emulator
+      ? "https://chatter-70mf1zyq1-hayatudeens-projects.vercel.app"
+      : "http://localhost:8000";
 
   const handleRegister = async () => {
-    const user = { name, email, password, image };
+    if (!name || !email || !password) {
+      return Alert.alert("Error", "All fields are required");
+    }
 
     try {
-      const response = await axios.post(`${API_BASE_URL}/register`, user);
-      console.log(response.data);
+      const response = await axios.post(`${API_BASE_URL}/register`, {
+        name,
+        email,
+        password,
+        image,
+      });
 
       Alert.alert(
-        "Registration Successful",
-        "You have been registered successfully ✅"
+        "Success",
+        response.data.message || "Registered successfully ✅"
       );
 
       setName("");
       setEmail("");
       setPassword("");
       setImage("");
+
+      // Navigate to Login
+      navigation.replace("Login");
     } catch (error) {
-      Alert.alert("Registration Error", "An error occurred while registering.");
-      console.log("❌ Registration failed:", error.message);
+      console.log(
+        "❌ Registration Error:",
+        error.response?.data || error.message
+      );
+      Alert.alert(
+        "Registration Failed",
+        error.response?.data?.message || "An error occurred"
+      );
     }
   };
 
@@ -55,12 +70,12 @@ const RegisterScreen = () => {
       <KeyboardAvoidingView>
         <View style={styles.header}>
           <Text style={styles.title}>Register</Text>
-          <Text style={styles.subtitle}>Register to your account</Text>
+          <Text style={styles.subtitle}>Create a new account</Text>
         </View>
 
         <View style={{ marginTop: 50 }}>
           {/* Name */}
-          <View style={{ marginTop: 10 }}>
+          <View>
             <Text style={styles.label}>Name</Text>
             <TextInput
               value={name}
@@ -86,7 +101,6 @@ const RegisterScreen = () => {
           {/* Password with eye icon */}
           <View style={{ marginTop: 10 }}>
             <Text style={styles.label}>Password</Text>
-
             <View style={styles.passwordContainer}>
               <TextInput
                 value={password}
@@ -94,30 +108,27 @@ const RegisterScreen = () => {
                 secureTextEntry={!showPassword}
                 style={[styles.input, { flex: 1, borderBottomWidth: 0 }]}
                 placeholderTextColor={"black"}
-                placeholder="Password"
+                placeholder="Enter password"
               />
-
               <Ionicons
                 name={showPassword ? "eye-off" : "eye"}
                 size={22}
                 color="gray"
                 onPress={() => setShowPassword(!showPassword)}
-                style={{ marginRight: 5 }}
               />
             </View>
-
             <View style={styles.underline} />
           </View>
 
           {/* Image */}
           <View style={{ marginTop: 10 }}>
-            <Text style={styles.label}>Image</Text>
+            <Text style={styles.label}>Image (optional)</Text>
             <TextInput
               value={image}
               onChangeText={setImage}
               style={styles.input}
               placeholderTextColor={"black"}
-              placeholder="Image URL"
+              placeholder="Paste image URL"
             />
           </View>
 

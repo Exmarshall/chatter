@@ -12,6 +12,7 @@ import { useNavigation } from "@react-navigation/native";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Ionicons } from "@expo/vector-icons";
+import { Platform } from "react-native";
 
 const LoginScreen = () => {
   const [email, setEmail] = useState("");
@@ -19,118 +20,81 @@ const LoginScreen = () => {
   const [showPassword, setShowPassword] = useState(false);
   const navigation = useNavigation();
 
+  const API_BASE_URL =
+    Platform.OS === "android" || Platform.OS === "ios"
+      ? "https://chatter-70mf1zyq1-hayatudeens-projects.vercel.app"
+      : "http://localhost:8000";
+
   useEffect(() => {
     const checkLoginStatus = async () => {
       try {
         const token = await AsyncStorage.getItem("authToken");
-
-        if (token) {
-          navigation.replace("Home");
-        }
+        if (token) navigation.replace("Home");
       } catch (error) {
         console.log("error", error);
       }
     };
-
     checkLoginStatus();
   }, []);
 
-  const handleLogin = () => {
-    const user = {
-      email: email,
-      password: password,
-    };
+  const handleLogin = async () => {
+    if (!email || !password) {
+      return Alert.alert("Error", "Please enter both email and password");
+    }
 
-    axios
-      .post("http://localhost:8000/login", user)
-      .then((response) => {
-        console.log(response);
-        const token = response.data.token;
-        AsyncStorage.setItem("authToken", token);
-
-        navigation.replace("Home");
-      })
-      .catch((error) => {
-        Alert.alert("Login Error", "Invalid email or password");
-        console.log("Login Error", error);
+    try {
+      const response = await axios.post(`${API_BASE_URL}/login`, {
+        email,
+        password,
       });
+
+      const token = response.data.token;
+      if (token) {
+        await AsyncStorage.setItem("authToken", token);
+        navigation.replace("Home");
+      }
+    } catch (error) {
+      console.log("❌ Login Error:", error.response?.data || error.message);
+      Alert.alert(
+        "Login Failed",
+        error.response?.data?.message || "Invalid email or password"
+      );
+    }
   };
 
   return (
-    <View
-      style={{
-        flex: 1,
-        backgroundColor: "white",
-        padding: 10,
-        alignItems: "center",
-      }}
-    >
+    <View style={styles.container}>
       <KeyboardAvoidingView>
-        <View
-          style={{
-            marginTop: 100,
-            justifyContent: "center",
-            alignItems: "center",
-          }}
-        >
-          <Text style={{ color: "#4A55A2", fontSize: 17, fontWeight: "600" }}>
-            Sign In
-          </Text>
-
-          <Text style={{ fontSize: 17, fontWeight: "600", marginTop: 15 }}>
-            Sign In to Your Account
-          </Text>
+        <View style={styles.header}>
+          <Text style={styles.title}>Sign In</Text>
+          <Text style={styles.subtitle}>Sign in to your account</Text>
         </View>
 
         <View style={{ marginTop: 50 }}>
+          {/* Email */}
           <View>
-            <Text style={{ fontSize: 18, fontWeight: "600", color: "gray" }}>
-              Email
-            </Text>
-
+            <Text style={styles.label}>Email</Text>
             <TextInput
               value={email}
-              onChangeText={(text) => setEmail(text)}
-              style={{
-                fontSize: 18,
-                borderBottomColor: "gray",
-                borderBottomWidth: 1,
-                marginVertical: 10,
-                width: 300,
-              }}
+              onChangeText={setEmail}
+              style={styles.input}
               placeholderTextColor={"black"}
               placeholder="Enter your email"
             />
           </View>
 
-          {/* Password input with eye icon */}
+          {/* Password */}
           <View style={{ marginTop: 10 }}>
-            <Text style={{ fontSize: 18, fontWeight: "600", color: "gray" }}>
-              Password
-            </Text>
-
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                borderBottomColor: "gray",
-                borderBottomWidth: 1,
-                marginVertical: 10,
-                width: 300,
-              }}
-            >
+            <Text style={styles.label}>Password</Text>
+            <View style={styles.passwordContainer}>
               <TextInput
                 value={password}
-                onChangeText={(text) => setPassword(text)}
+                onChangeText={setPassword}
                 secureTextEntry={!showPassword}
-                style={{
-                  flex: 1,
-                  fontSize: 18,
-                }}
+                style={[styles.input, { flex: 1, borderBottomWidth: 0 }]}
                 placeholderTextColor={"black"}
-                placeholder="Password"
+                placeholder="Enter your password"
               />
-
               <Pressable onPress={() => setShowPassword(!showPassword)}>
                 <Ionicons
                   name={showPassword ? "eye-off" : "eye"}
@@ -139,37 +103,19 @@ const LoginScreen = () => {
                 />
               </Pressable>
             </View>
+            <View style={styles.underline} />
           </View>
 
-          <Pressable
-            onPress={handleLogin}
-            style={{
-              width: 200,
-              backgroundColor: "#4A55A2",
-              padding: 15,
-              marginTop: 50,
-              marginLeft: "auto",
-              marginRight: "auto",
-              borderRadius: 6,
-            }}
-          >
-            <Text
-              style={{
-                color: "white",
-                fontSize: 16,
-                fontWeight: "bold",
-                textAlign: "center",
-              }}
-            >
-              Login
-            </Text>
+          {/* Login button */}
+          <Pressable onPress={handleLogin} style={styles.loginButton}>
+            <Text style={styles.loginText}>Login</Text>
           </Pressable>
 
           <Pressable
             onPress={() => navigation.navigate("Register")}
             style={{ marginTop: 15 }}
           >
-            <Text style={{ textAlign: "center", color: "gray", fontSize: 16 }}>
+            <Text style={styles.signupLink}>
               Don’t have an account? Sign Up
             </Text>
           </Pressable>
@@ -181,4 +127,69 @@ const LoginScreen = () => {
 
 export default LoginScreen;
 
-const styles = StyleSheet.create({});
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "white",
+    padding: 10,
+    alignItems: "center",
+  },
+  header: {
+    marginTop: 100,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  title: {
+    color: "#4A55A2",
+    fontSize: 17,
+    fontWeight: "600",
+  },
+  subtitle: {
+    fontSize: 17,
+    fontWeight: "600",
+    marginTop: 15,
+  },
+  label: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "gray",
+  },
+  input: {
+    fontSize: 18,
+    borderBottomColor: "gray",
+    borderBottomWidth: 1,
+    marginVertical: 10,
+    width: 300,
+  },
+  passwordContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    width: 300,
+    justifyContent: "space-between",
+  },
+  underline: {
+    borderBottomColor: "gray",
+    borderBottomWidth: 1,
+    width: 300,
+    alignSelf: "center",
+  },
+  loginButton: {
+    width: 200,
+    backgroundColor: "#4A55A2",
+    padding: 15,
+    marginTop: 50,
+    borderRadius: 6,
+    alignSelf: "center",
+  },
+  loginText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "bold",
+    textAlign: "center",
+  },
+  signupLink: {
+    textAlign: "center",
+    color: "gray",
+    fontSize: 16,
+  },
+});
