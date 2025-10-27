@@ -13,7 +13,7 @@ const LocalStrategy = require("passport-local").Strategy;
 // Initialize app
 // ------------------------------
 const app = express();
-const port = 8000; // Hardcoded instead of process.env.PORT
+const PORT = process.env.PORT || 8000;
 
 // ------------------------------
 // Middleware
@@ -24,46 +24,67 @@ app.use(bodyParser.json());
 app.use(passport.initialize());
 
 // ------------------------------
-// MongoDB Connection (hardcoded URI)
+// MongoDB Connection
 // ------------------------------
 mongoose
   .connect(
-    "mongodb+srv://umarhayatudeen88_db_user:wV194RmFPBuOeP2n@cluster0.6gbfniw.mongodb.net/",
+    "mongodb+srv://umarhayatudeen88_db_user:wV194RmFPBuOeP2n@cluster0.6gbfniw.mongodb.net/chatterdb",
     {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     }
   )
   .then(() => console.log("✅ Connected to MongoDB"))
-  .catch((err) => console.error("❌ Error connecting to MongoDB:", err));
+  .catch((err) =>
+    console.error("❌ Error connecting to MongoDB:", err.message)
+  );
 
 // ------------------------------
-// Start server
+// Import models
 // ------------------------------
-app.listen(port, () => console.log(`✅ Server running on port ${port}`));
-
-
-
 const User = require("./models/user");
 const Message = require("./models/message");
 
+// ------------------------------
+// Routes
+// ------------------------------
 
-//endpoint for registration of the user
-
-app.post("/register", (req, res) => {
-  const { name, email, password, image } = req.body;
-
-  // create a new User object
-  const newUser = new User({ name, email, password, image });
-
-  // save the user to the database
-  newUser
-    .save()
-    .then(() => {
-      res.status(200).json({ message: "User registered successfully" });
-    })
-    .catch((err) => {
-      console.log("Error registering user", err);
-      res.status(500).json({ message: "Error registering the user!" });
-    });
+// ✅ Test route
+app.get("/", (req, res) => {
+  res.json({ message: "Chatter API is running ✅" });
 });
+
+// ✅ Register user route
+app.post("/register", async (req, res) => {
+  try {
+    const { name, email, password, image } = req.body;
+
+    if (!name || !email || !password) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ message: "Email already registered" });
+    }
+
+    const newUser = new User({ name, email, password, image });
+    await newUser.save();
+
+    res.status(200).json({ message: "User registered successfully ✅" });
+  } catch (err) {
+    console.error("❌ Error registering user:", err.message);
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// ------------------------------
+// Run locally OR export for Vercel
+// ------------------------------
+if (require.main === module) {
+  app.listen(PORT, () =>
+    console.log(`✅ Server running locally on port ${PORT}`)
+  );
+} else {
+  module.exports = app;
+}
