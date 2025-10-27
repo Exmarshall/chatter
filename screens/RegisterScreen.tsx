@@ -11,6 +11,7 @@ import React, { useState } from "react";
 import { useNavigation } from "@react-navigation/native";
 import axios from "axios";
 import { Ionicons } from "@expo/vector-icons";
+import { Platform } from "react-native";
 
 const RegisterScreen = () => {
   const [email, setEmail] = useState("");
@@ -21,101 +22,75 @@ const RegisterScreen = () => {
 
   const navigation = useNavigation();
 
-  const handleRegister = () => {
-    const user = {
-      name,
-      email,
-      password,
-      image,
-    };
+  // ✅ Automatically pick API URL based on platform/environment
+  const API_BASE_URL =
+    Platform.OS === "android" || Platform.OS === "ios"
+      ? "https://chatter-70mf1zyq1-hayatudeens-projects.vercel.app" // for Expo Go or real devices
+      : "http://localhost:8000"; // for local development in web or emulator
 
-    axios
-      .post("http://localhost:8000/register", user)
-      .then((response) => {
-        console.log(response);
-        Alert.alert(
-          "Registration successful",
-          "You have been registered Successfully"
-        );
-        setName("");
-        setEmail("");
-        setPassword("");
-        setImage("");
-      })
-      .catch((error) => {
-        Alert.alert(
-          "Registration Error",
-          "An error occurred while registering"
-        );
-        console.log("registration failed", error);
-      });
+  const handleRegister = async () => {
+    const user = { name, email, password, image };
+
+    try {
+      const response = await axios.post(`${API_BASE_URL}/register`, user);
+      console.log(response.data);
+
+      Alert.alert(
+        "Registration Successful",
+        "You have been registered successfully ✅"
+      );
+
+      setName("");
+      setEmail("");
+      setPassword("");
+      setImage("");
+    } catch (error) {
+      Alert.alert("Registration Error", "An error occurred while registering.");
+      console.log("❌ Registration failed:", error.message);
+    }
   };
 
   return (
-    <View
-      style={{
-        flex: 1,
-        backgroundColor: "white",
-        padding: 10,
-        alignItems: "center",
-      }}
-    >
+    <View style={styles.container}>
       <KeyboardAvoidingView>
-        <View
-          style={{
-            marginTop: 100,
-            justifyContent: "center",
-            alignItems: "center",
-          }}
-        >
-          <Text style={{ color: "#4A55A2", fontSize: 17, fontWeight: "600" }}>
-            Register
-          </Text>
-
-          <Text style={{ fontSize: 17, fontWeight: "600", marginTop: 15 }}>
-            Register To your Account
-          </Text>
+        <View style={styles.header}>
+          <Text style={styles.title}>Register</Text>
+          <Text style={styles.subtitle}>Register to your account</Text>
         </View>
 
         <View style={{ marginTop: 50 }}>
-          {/* Name Input */}
+          {/* Name */}
           <View style={{ marginTop: 10 }}>
-            <Text style={{ fontSize: 18, fontWeight: "600", color: "gray" }}>
-              Name
-            </Text>
+            <Text style={styles.label}>Name</Text>
             <TextInput
               value={name}
-              onChangeText={(text) => setName(text)}
+              onChangeText={setName}
               style={styles.input}
               placeholderTextColor={"black"}
               placeholder="Enter your name"
             />
           </View>
 
-          {/* Email Input */}
+          {/* Email */}
           <View>
-            <Text style={{ fontSize: 18, fontWeight: "600", color: "gray" }}>
-              Email
-            </Text>
+            <Text style={styles.label}>Email</Text>
             <TextInput
               value={email}
-              onChangeText={(text) => setEmail(text)}
+              onChangeText={setEmail}
               style={styles.input}
               placeholderTextColor={"black"}
               placeholder="Enter your email"
             />
           </View>
 
-          {/* Password Input with Eye Icon */}
+          {/* Password with eye icon */}
           <View style={{ marginTop: 10 }}>
-            <Text style={{ fontSize: 18, fontWeight: "600", color: "gray" }}>
-              Password
-            </Text>
+            <Text style={styles.label}>Password</Text>
 
             <View style={styles.passwordContainer}>
               <TextInput
                 value={password}
-                onChangeText={(text) => setPassword(text)}
+                onChangeText={setPassword}
                 secureTextEntry={!showPassword}
                 style={[styles.input, { flex: 1, borderBottomWidth: 0 }]}
                 placeholderTextColor={"black"}
@@ -131,27 +106,18 @@ const RegisterScreen = () => {
               />
             </View>
 
-            <View
-              style={{
-                borderBottomColor: "gray",
-                borderBottomWidth: 1,
-                width: 300,
-                alignSelf: "center",
-              }}
-            />
+            <View style={styles.underline} />
           </View>
 
-          {/* Image Input */}
+          {/* Image */}
           <View style={{ marginTop: 10 }}>
-            <Text style={{ fontSize: 18, fontWeight: "600", color: "gray" }}>
-              Image
-            </Text>
+            <Text style={styles.label}>Image</Text>
             <TextInput
               value={image}
-              onChangeText={(text) => setImage(text)}
+              onChangeText={setImage}
               style={styles.input}
               placeholderTextColor={"black"}
-              placeholder="Image"
+              placeholder="Image URL"
             />
           </View>
 
@@ -165,8 +131,8 @@ const RegisterScreen = () => {
             onPress={() => navigation.goBack()}
             style={{ marginTop: 15 }}
           >
-            <Text style={{ textAlign: "center", color: "gray", fontSize: 16 }}>
-              Already Have an account? Sign in
+            <Text style={styles.loginLink}>
+              Already have an account? Sign in
             </Text>
           </Pressable>
         </View>
@@ -178,6 +144,32 @@ const RegisterScreen = () => {
 export default RegisterScreen;
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "white",
+    padding: 10,
+    alignItems: "center",
+  },
+  header: {
+    marginTop: 100,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  title: {
+    color: "#4A55A2",
+    fontSize: 17,
+    fontWeight: "600",
+  },
+  subtitle: {
+    fontSize: 17,
+    fontWeight: "600",
+    marginTop: 15,
+  },
+  label: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "gray",
+  },
   input: {
     fontSize: 18,
     borderBottomColor: "gray",
@@ -190,6 +182,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     width: 300,
     justifyContent: "space-between",
+  },
+  underline: {
+    borderBottomColor: "gray",
+    borderBottomWidth: 1,
+    width: 300,
+    alignSelf: "center",
   },
   registerButton: {
     width: 200,
@@ -205,5 +203,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "bold",
     textAlign: "center",
+  },
+  loginLink: {
+    textAlign: "center",
+    color: "gray",
+    fontSize: 16,
   },
 });
