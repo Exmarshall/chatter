@@ -22,7 +22,7 @@ const LoginScreen = () => {
 
   const API_BASE_URL =
     Platform.OS === "android" || Platform.OS === "ios"
-      ? "https://chatter-70mf1zyq1-hayatudeens-projects.vercel.app"
+      ? "https://chatter-ejvoeyhuz-hayatudeens-projects.vercel.app" // ✅ Correct backend
       : "http://localhost:8000";
 
   useEffect(() => {
@@ -71,7 +71,6 @@ const LoginScreen = () => {
         </View>
 
         <View style={{ marginTop: 50 }}>
-          {/* Email */}
           <View>
             <Text style={styles.label}>Email</Text>
             <TextInput
@@ -83,7 +82,6 @@ const LoginScreen = () => {
             />
           </View>
 
-          {/* Password */}
           <View style={{ marginTop: 10 }}>
             <Text style={styles.label}>Password</Text>
             <View style={styles.passwordContainer}>
@@ -106,7 +104,6 @@ const LoginScreen = () => {
             <View style={styles.underline} />
           </View>
 
-          {/* Login button */}
           <Pressable onPress={handleLogin} style={styles.loginButton}>
             <Text style={styles.loginText}>Login</Text>
           </Pressable>
@@ -127,6 +124,7 @@ const LoginScreen = () => {
 
 export default LoginScreen;
 
+// styles unchanged...
 const styles = StyleSheet.create({
   container: {
     flex: 1,
