@@ -5,18 +5,21 @@ import { Ionicons } from "@expo/vector-icons";
 import { MaterialIcons } from "@expo/vector-icons";
 import { UserType } from "../UserContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import jwt_decode from "jwt-decode";
+import { jwtDecode } from "jwt-decode";
 import axios from "axios";
 import User from "../components/User";
+import { BASE_URL } from "../config";
+
 const HomeScreen = () => {
   const navigation = useNavigation();
   const { userId, setUserId } = useContext(UserType);
   const [users, setUsers] = useState([]);
+
   useLayoutEffect(() => {
     navigation.setOptions({
       headerTitle: "",
       headerLeft: () => (
-        <Text style={{ fontSize: 16, fontWeight: "bold" }}>Swift Chat</Text>
+        <Text style={{ fontSize: 16, fontWeight: "bold" }}>Ping Me</Text>
       ),
       headerRight: () => (
         <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
@@ -39,25 +42,36 @@ const HomeScreen = () => {
 
   useEffect(() => {
     const fetchUsers = async () => {
-      const token = await AsyncStorage.getItem("authToken");
-      const decodedToken = jwt_decode(token);
-      const userId = decodedToken.userId;
-      setUserId(userId);
+      try {
+        const token = await AsyncStorage.getItem("authToken");
+        console.log("🔑 Token:", token);
 
-      axios
-        .get(`http://localhost:8000/users/${userId}`)
-        .then((response) => {
-          setUsers(response.data);
-        })
-        .catch((error) => {
-          console.log("error retrieving users", error);
-        });
+        if (!token) return;
+
+        const decodedToken = jwtDecode(token); // ✅ Correct usage
+        console.log("🔍 Decoded Token:", decodedToken);
+
+        const loggedInUserId = decodedToken.userId;
+        setUserId(loggedInUserId);
+
+        console.log(
+          `🌍 Fetching users from: ${BASE_URL}/users/${loggedInUserId}`
+        );
+
+        const response = await axios.get(`${BASE_URL}/users/${loggedInUserId}`);
+        console.log("✅ Users Fetched:", response.data);
+        setUsers(response.data);
+      } catch (error) {
+        console.log(
+          "❌ Error retrieving users:",
+          error.response?.data || error.message
+        );
+      }
     };
 
     fetchUsers();
   }, []);
 
-  console.log("users", users);
   return (
     <View>
       <View style={{ padding: 10 }}>

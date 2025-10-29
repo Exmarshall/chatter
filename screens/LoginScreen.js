@@ -20,10 +20,10 @@ const LoginScreen = () => {
   const [showPassword, setShowPassword] = useState(false);
   const navigation = useNavigation();
 
-  const API_BASE_URL =
-    Platform.OS === "android" || Platform.OS === "ios"
-      ? "https://chatter-ejvoeyhuz-hayatudeens-projects.vercel.app" // ✅ Correct backend
-      : "http://localhost:8000";
+ const API_BASE_URL =
+   Platform.OS === "android" || Platform.OS === "ios"
+     ? "https://chatter-c5fywzht6-hayatudeens-projects.vercel.app"
+     : "http://localhost:8000";
 
   useEffect(() => {
     const checkLoginStatus = async () => {

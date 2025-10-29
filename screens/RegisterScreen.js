@@ -25,7 +25,7 @@ const RegisterScreen = () => {
   // ✅ Automatically switch API URL
   const API_BASE_URL =
     Platform.OS === "android" || Platform.OS === "ios"
-      ? "https://chatter-70mf1zyq1-hayatudeens-projects.vercel.app"
+      ? "https://chatter-c5fywzht6-hayatudeens-projects.vercel.app"
       : "http://localhost:8000";
 
   const handleRegister = async () => {
